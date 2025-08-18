@@ -1,29 +1,30 @@
 package com.examly.springapp.service;
 
-import java.util.List;
-
+import com.examly.springapp.exception.InvalidOperatingRegionException;
+import com.examly.springapp.model.FoodTruckVendor;
+import com.examly.springapp.repository.FoodTruckVendorRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.examly.springapp.model.FoodTruckVendor;
-import com.examly.springapp.repository.FoodTruckVendorRepo;
-import com.examly.springapp.exception.InvalidOperatingRegionException;
+import java.util.List;
 
 @Service
 public class FoodTruckVendorService {
 
     @Autowired
-    private FoodTruckVendorRepo vendorRepo;
+    private FoodTruckVendorRepo vendorRepository;
 
     public FoodTruckVendor addVendor(FoodTruckVendor vendor) {
-        String region = vendor.getOperatingRegion();
-        if (!region.equalsIgnoreCase("Chennai") && !region.equalsIgnoreCase("Bangalore")) {
+        // Validate operating region - only Chennai and Bangalore allowed
+        if (vendor.getOperatingRegion() == null ||
+            (!vendor.getOperatingRegion().equals("Chennai") && !vendor.getOperatingRegion().equals("Bangalore"))) {
             throw new InvalidOperatingRegionException("Invalid operating region. Must be either Chennai or Bangalore.");
         }
-        return vendorRepo.save(vendor);
+       
+        return vendorRepository.save(vendor);
     }
 
     public List<FoodTruckVendor> getAllVendors() {
-        return vendorRepo.findAll();
+        return vendorRepository.findAll();
     }
 }
