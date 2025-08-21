@@ -1,6 +1,5 @@
 package com.examly.springapp.controller;
 
-import com.examly.springapp.exception.InvalidOperatingRegionException;
 import com.examly.springapp.model.FoodTruckVendor;
 import com.examly.springapp.service.FoodTruckVendorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class FoodTruckVendorController {
 
     @Autowired
@@ -22,8 +21,6 @@ public class FoodTruckVendorController {
         try {
             FoodTruckVendor savedVendor = vendorService.addVendor(vendor);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedVendor);
-        } catch (InvalidOperatingRegionException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -39,8 +36,8 @@ public class FoodTruckVendorController {
         }
     }
 
-    @ExceptionHandler(InvalidOperatingRegionException.class)
-    public ResponseEntity<String> handleInvalidOperatingRegion(InvalidOperatingRegionException ex) {
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleInvalidOperatingRegion(Exception ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Invalid operating region. Must be either Chennai or Bangalore.");
     }
