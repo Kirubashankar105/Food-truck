@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class VendorService {
@@ -77,5 +79,21 @@ public class VendorService {
     
     public List<VendorApplication> getVendorApplications(FoodTruckVendor vendor) {
         return applicationRepository.findByVendor(vendor);
+    }
+
+    public Map<String, Object> getDashboardData(User user) {
+        Map<String, Object> dashboardData = new HashMap<>();
+        Optional<FoodTruckVendor> vendor = getVendorByUser(user);
+        
+        if (vendor.isPresent()) {
+            dashboardData.put("profile", vendor.get());
+            List<VendorApplication> applications = getVendorApplications(vendor.get());
+            dashboardData.put("applications", applications);
+            dashboardData.put("applicationCount", applications.size());
+        } else {
+            dashboardData.put("profileComplete", false);
+        }
+        
+        return dashboardData;
     }
 }

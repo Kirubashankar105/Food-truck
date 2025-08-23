@@ -1,60 +1,40 @@
+// components/auth/ProtectedRoute.js
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import './ProtectedRoute.css';
 
-const ProtectedRoute = ({ children, requiredRole }) => {
-  const { loading, isAuthenticated, hasRole } = useAuth();
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const { isAuthenticated, user, isLoading } = useAuth();
 
-  // Show loading while auth is initializing
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="loading-container" style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '200px'
-      }}>
-        <div className="loading-spinner">Loading...</div>
+      <div className="protected-route-loading">
+        <div className="spinner"></div>
+        <p>Loading...</p>
       </div>
     );
   }
 
-  // Check if user is authenticated
-  const checkAuthenticated = () => {
-    if (typeof isAuthenticated !== 'function') {
-      console.error('isAuthenticated is not a function in ProtectedRoute');
-      return false;
-    }
-    try {
-      return isAuthenticated();
-    } catch (error) {
-      console.error('Error checking authentication in ProtectedRoute:', error);
-      return false;
-    }
-  };
-
-  // Check if user has required role
-  const checkRole = (role) => {
-    if (typeof hasRole !== 'function') {
-      console.error('hasRole is not a function in ProtectedRoute');
-      return false;
-    }
-    try {
-      return hasRole(role);
-    } catch (error) {
-      console.error('Error checking role in ProtectedRoute:', error);
-      return false;
-    }
-  };
-
-  const isUserAuthenticated = checkAuthenticated();
-
-  if (!isUserAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && !checkRole(requiredRole)) {
-    return <Navigate to="/" replace />;
+  // Check if user has required roles
+  if (allowedRoles.length > 0) {
+    const hasRequiredRole = allowedRoles.some(role => 
+      user.roles && user.roles.includes(role)
+    );
+
+    if (!hasRequiredRole) {
+      return (
+        <div className="access-denied">
+          <h2>Access Denied</h2>
+          <p>You don't have permission to access this page.</p>
+          <Navigate to="/" replace />
+        </div>
+      );
+    }
   }
 
   return children;

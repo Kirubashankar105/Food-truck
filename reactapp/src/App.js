@@ -1,41 +1,42 @@
+// App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import Navbar from './components/common/Navbar';
-import Footer from './components/common/Footer';
-import Home from './components/public/Home';
-import VendorList from './components/public/VendorList';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
-import VendorDashboard from './components/vendor/VendorDashboard';
-import VendorProfile from './components/vendor/VendorProfile';
-import ApplicationForm from './components/vendor/ApplicationForm';
-import ApplicationStatus from './components/vendor/ApplicationStatus';
-import AdminDashboard from './components/admin/AdminDashboard';
-import VendorManagement from './components/admin/VendorManagement';
-import ApplicationManagement from './components/admin/ApplicationManagement';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import './styles/main.css';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import VendorDashboard from './pages/vendor/VendorDashboard';
+import VendorProfile from './pages/vendor/VendorProfile';
+import VendorApplications from './pages/vendor/VendorApplications';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import PendingUsers from './pages/admin/PendingUsers';
+import AllVendors from './pages/admin/AllVendors';
+import AllApplications from './pages/admin/AllApplications';
+import PublicVendors from './pages/PublicVendors';
+import './App.css';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="App">
-          <Navbar />
+          <Header />
           <main className="main-content">
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
-              <Route path="/vendors" element={<VendorList />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-
-              {/* Vendor Protected Routes */}
+              <Route path="/vendors" element={<PublicVendors />} />
+              
+              {/* Vendor Routes */}
               <Route 
                 path="/vendor/dashboard" 
                 element={
-                  <ProtectedRoute requiredRole="ROLE_VENDOR">
+                  <ProtectedRoute allowedRoles={['ROLE_VENDOR']}>
                     <VendorDashboard />
                   </ProtectedRoute>
                 } 
@@ -43,53 +44,56 @@ function App() {
               <Route 
                 path="/vendor/profile" 
                 element={
-                  <ProtectedRoute requiredRole="ROLE_VENDOR">
+                  <ProtectedRoute allowedRoles={['ROLE_VENDOR']}>
                     <VendorProfile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/vendor/application" 
-                element={
-                  <ProtectedRoute requiredRole="ROLE_VENDOR">
-                    <ApplicationForm />
                   </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/vendor/applications" 
                 element={
-                  <ProtectedRoute requiredRole="ROLE_VENDOR">
-                    <ApplicationStatus />
+                  <ProtectedRoute allowedRoles={['ROLE_VENDOR']}>
+                    <VendorApplications />
                   </ProtectedRoute>
                 } 
               />
-
-              {/* Admin Protected Routes */}
+              
+              {/* Admin Routes */}
               <Route 
                 path="/admin/dashboard" 
                 element={
-                  <ProtectedRoute requiredRole="ROLE_ADMIN">
+                  <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/pending-users" 
+                element={
+                  <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
+                    <PendingUsers />
                   </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/admin/vendors" 
                 element={
-                  <ProtectedRoute requiredRole="ROLE_ADMIN">
-                    <VendorManagement />
+                  <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
+                    <AllVendors />
                   </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/admin/applications" 
                 element={
-                  <ProtectedRoute requiredRole="ROLE_ADMIN">
-                    <ApplicationManagement />
+                  <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
+                    <AllApplications />
                   </ProtectedRoute>
                 } 
               />
+              
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
           <Footer />

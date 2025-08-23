@@ -63,117 +63,47 @@ public class Inspection {
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public VendorApplication getApplication() { return application; }
+    public void setApplication(VendorApplication application) { this.application = application; }
 
-    public VendorApplication getApplication() {
-        return application;
-    }
+    public User getInspector() { return inspector; }
+    public void setInspector(User inspector) { this.inspector = inspector; }
 
-    public void setApplication(VendorApplication application) {
-        this.application = application;
-    }
+    public LocalDateTime getScheduledDate() { return scheduledDate; }
+    public void setScheduledDate(LocalDateTime scheduledDate) { this.scheduledDate = scheduledDate; }
 
-    public User getInspector() {
-        return inspector;
-    }
+    public LocalDateTime getCompletedDate() { return completedDate; }
+    public void setCompletedDate(LocalDateTime completedDate) { this.completedDate = completedDate; }
 
-    public void setInspector(User inspector) {
-        this.inspector = inspector;
-    }
+    public InspectionStatus getStatus() { return status; }
+    public void setStatus(InspectionStatus status) { this.status = status; }
 
-    public LocalDateTime getScheduledDate() {
-        return scheduledDate;
-    }
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
 
-    public void setScheduledDate(LocalDateTime scheduledDate) {
-        this.scheduledDate = scheduledDate;
-    }
+    public Integer getSafetyScore() { return safetyScore; }
+    public void setSafetyScore(Integer safetyScore) { this.safetyScore = safetyScore; }
 
-    public LocalDateTime getCompletedDate() {
-        return completedDate;
-    }
+    public Integer getHygieneScore() { return hygieneScore; }
+    public void setHygieneScore(Integer hygieneScore) { this.hygieneScore = hygieneScore; }
 
-    public void setCompletedDate(LocalDateTime completedDate) {
-        this.completedDate = completedDate;
-    }
+    public Integer getEquipmentScore() { return equipmentScore; }
+    public void setEquipmentScore(Integer equipmentScore) { this.equipmentScore = equipmentScore; }
 
-    public InspectionStatus getStatus() {
-        return status;
-    }
+    public Integer getOverallScore() { return overallScore; }
+    public void setOverallScore(Integer overallScore) { this.overallScore = overallScore; }
 
-    public void setStatus(InspectionStatus status) {
-        this.status = status;
-    }
+    public InspectionResult getResult() { return result; }
+    public void setResult(InspectionResult result) { this.result = result; }
 
-    public String getNotes() {
-        return notes;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public Integer getSafetyScore() {
-        return safetyScore;
-    }
-
-    public void setSafetyScore(Integer safetyScore) {
-        this.safetyScore = safetyScore;
-    }
-
-    public Integer getHygieneScore() {
-        return hygieneScore;
-    }
-
-    public void setHygieneScore(Integer hygieneScore) {
-        this.hygieneScore = hygieneScore;
-    }
-
-    public Integer getEquipmentScore() {
-        return equipmentScore;
-    }
-
-    public void setEquipmentScore(Integer equipmentScore) {
-        this.equipmentScore = equipmentScore;
-    }
-
-    public Integer getOverallScore() {
-        return overallScore;
-    }
-
-    public void setOverallScore(Integer overallScore) {
-        this.overallScore = overallScore;
-    }
-
-    public InspectionResult getResult() {
-        return result;
-    }
-
-    public void setResult(InspectionResult result) {
-        this.result = result;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
     @PreUpdate
     public void preUpdate() {
@@ -182,17 +112,18 @@ public class Inspection {
             this.overallScore = (safetyScore + hygieneScore + equipmentScore) / 3;
         }
     }
-}
+    
+    // Enums defined as inner classes or separate files
+    public enum InspectionStatus {
+        SCHEDULED,
+        IN_PROGRESS,
+        COMPLETED,
+        CANCELLED
+    }
 
-enum InspectionStatus {
-    SCHEDULED,
-    IN_PROGRESS,
-    COMPLETED,
-    CANCELLED
-}
-
-enum InspectionResult {
-    PASSED,
-    FAILED,
-    CONDITIONAL_PASS
+    public enum InspectionResult {
+        PASSED,
+        FAILED,
+        CONDITIONAL_PASS
+    }
 }

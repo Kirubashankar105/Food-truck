@@ -2,6 +2,7 @@ package com.examly.springapp.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "documents")
@@ -12,6 +13,7 @@ public class Document {
     
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id")
+    @JsonIgnore // Prevent circular reference
     private VendorApplication application;
     
     @Enumerated(EnumType.STRING)
@@ -24,13 +26,10 @@ public class Document {
     private String mimeType;
     private LocalDateTime uploadedAt = LocalDateTime.now();
     
-    public enum DocumentType {
-        BUSINESS_LICENSE,
-        FOOD_SAFETY_CERTIFICATION,
-        VEHICLE_REGISTRATION,
-        INSURANCE_PAPERS,
-        MENU_DOCUMENT,
-        OTHER
+    // Auto-set uploadedAt on creation
+    @PrePersist
+    public void prePersist() {
+        this.uploadedAt = LocalDateTime.now();
     }
     
     // Constructors
@@ -70,4 +69,14 @@ public class Document {
     
     public LocalDateTime getUploadedAt() { return uploadedAt; }
     public void setUploadedAt(LocalDateTime uploadedAt) { this.uploadedAt = uploadedAt; }
+    
+    // Document type enum
+    public enum DocumentType {
+        BUSINESS_LICENSE,
+        FOOD_SAFETY_CERTIFICATION,
+        VEHICLE_REGISTRATION,
+        INSURANCE_PAPERS,
+        MENU_DOCUMENT,
+        OTHER
+    }
 }

@@ -3,6 +3,7 @@ package com.examly.springapp.model;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "roles")
@@ -12,10 +13,11 @@ public class Role {
     private Long id;
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "name", length = 50) // Increased length to accommodate enum values
+    @Column(name = "name", length = 50) 
     private RoleName name;
     
     @ManyToMany(mappedBy = "roles")
+    @JsonIgnore   // 🚀 prevents infinite recursion in JSON
     private Set<User> users = new HashSet<>();
     
     public Role() {}

@@ -25,7 +25,6 @@ public class UserService implements UserDetailsService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     
-    // Constructor injection instead of @Autowired
     public UserService(UserRepository userRepository, 
                       RoleRepository roleRepository, 
                       PasswordEncoder passwordEncoder) {
@@ -55,6 +54,48 @@ public class UserService implements UserDetailsService {
     }
     
     public User createVendorUser(String username, String email, String password) {
+        // Validate input
+        if (username == null || username.trim().isEmpty()) {
+            throw new RuntimeException("Username cannot be empty!");
+        }
+        if (email == null || email.trim().isEmpty()) {
+            throw new RuntimeException("Email cannot be empty!");
+        }
+        if (password == null || password.length() < 6) {
+            throw new RuntimeException("Password must be at least 6 characters long!");
+        }
+        
+        // Check for duplicates
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Username is already taken!");
+        }
+        
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email is already in use!");
+        }
+        
+        // Create user with encoded password
+        User user = new User(username, email, passwordEncoder.encode(password));
+        
+        // Assign ROLE_VENDOR
+        Set<Role> roles = new HashSet<>();
+        Role vendorRole = roleRepository.findByName(Role.RoleName.ROLE_VENDOR)
+                .orElseThrow(() -> new RuntimeException("Vendor Role not found."));
+        roles.add(vendorRole);
+        user.setRoles(roles);
+        
+        // Set verification token for admin approval
+        user.setVerificationToken(UUID.randomUUID().toString());
+        user.setTokenExpiry(LocalDateTime.now().plusDays(7)); // 7 days to get verified
+        
+        // User starts as unverified and disabled - needs admin approval
+        user.setVerified(false);
+        user.setEnabled(false);
+        
+        return userRepository.save(user);
+    }
+    
+    public User createAdminUser(String username, String email, String password) {
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username is already taken!");
         }
@@ -66,30 +107,42 @@ public class UserService implements UserDetailsService {
         User user = new User(username, email, passwordEncoder.encode(password));
         
         Set<Role> roles = new HashSet<>();
-        Role vendorRole = roleRepository.findByName(Role.RoleName.ROLE_VENDOR)
-                .orElseThrow(() -> new RuntimeException("Vendor Role not found."));
-        roles.add(vendorRole);
-        
+        Role adminRole = roleRepository.findByName(Role.RoleName.ROLE_ADMIN)
+                .orElseThrow(() -> new RuntimeException("Admin Role not found."));
+        roles.add(adminRole);
         user.setRoles(roles);
-        user.setVerificationToken(UUID.randomUUID().toString());
-        user.setTokenExpiry(LocalDateTime.now().plusHours(24));
+        
+        // Admins are auto-verified and enabled
+        user.setVerified(true);
+        user.setEnabled(true);
         
         return userRepository.save(user);
     }
     
-    public boolean verifyUser(String token) {
-        User user = userRepository.findByVerificationToken(token)
-                .orElse(null);
+    public boolean verifyUserByAdmin(Long userId, boolean approve) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if (user != null && user.getTokenExpiry().isAfter(LocalDateTime.now())) {
+        if (approve) {
             user.setVerified(true);
             user.setEnabled(true);
             user.setVerificationToken(null);
             user.setTokenExpiry(null);
-            userRepository.save(user);
-            return true;
+        } else {
+            // Reject user - you might want to delete or mark as rejected
+            user.setEnabled(false);
+            user.setVerified(false);
         }
         
-        return false;
+        userRepository.save(user);
+        return true;
+    }
+    
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
+    
+    public User findById(Long id) {
+        return userRepository.findById(id).orElse(null);
     }
 }

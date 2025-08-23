@@ -1,0 +1,156 @@
+/* Vendor Profile Styles */
+.vendor-profile {
+  min-height: 80vh;
+}
+
+.profile-form-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.profile-form {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+}
+
+.form-section {
+  margin-bottom: 40px;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 30px;
+}
+
+.form-section h2 {
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  border-top: 1px solid #eee;
+}
+
+.form-actions .btn {
+  min-width: 120px;
+}
+
+/* Profile Help Section */
+.profile-help {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  height: fit-content;
+  position: sticky;
+  top: 120px;
+}
+
+.profile-help h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+.profile-help ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.profile-help li {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.profile-help li:last-child {
+  margin-bottom: 0;
+}
+
+.profile-help strong {
+  color: #007bff;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Form Enhancements */
+.form-help {
+  display: block;
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+textarea.form-control {
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* Loading and Success States */
+.profile-form .loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-form-container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .profile-form {
+    padding: 30px 20px;
+  }
+
+  .profile-help {
+    position: static;
+    order: -1;
+  }
+
+  .form-section h2 {
+    font-size: 1.3rem;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-form-container {
+    margin: 0 -10px;
+  }
+
+  .profile-form,
+  .profile-help {
+    border-radius: 0;
+    margin: 0 -10px 20px;
+    padding: 24px 16px;
+  }
+}

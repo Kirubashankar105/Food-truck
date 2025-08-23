@@ -1,9 +1,9 @@
-// VendorApplication.java
 package com.examly.springapp.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "vendor_applications")
@@ -21,13 +21,17 @@ public class VendorApplication {
     
     @ManyToOne
     @JoinColumn(name = "assigned_reviewer_id")
+    @JsonIgnore // Prevent potential circular reference
     private User assignedReviewer;
     
     @ManyToOne
     @JoinColumn(name = "assigned_inspector_id")
+    @JsonIgnore // Prevent potential circular reference
     private User assignedInspector;
     
+    @Column(length = 1000)
     private String comments;
+    
     private LocalDateTime submittedAt;
     private LocalDateTime reviewedAt;
     private LocalDateTime inspectedAt;
@@ -37,8 +41,17 @@ public class VendorApplication {
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Document> documents;
     
-    public enum ApplicationStatus {
-        DRAFT, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, INSPECTION_SCHEDULED, INSPECTION_COMPLETED, LICENSED
+    // Auto-update timestamps
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+    
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
     
     // Constructors
@@ -84,4 +97,16 @@ public class VendorApplication {
     
     public List<Document> getDocuments() { return documents; }
     public void setDocuments(List<Document> documents) { this.documents = documents; }
+    
+    // Application status enum
+    public enum ApplicationStatus {
+        DRAFT, 
+        SUBMITTED, 
+        UNDER_REVIEW, 
+        APPROVED, 
+        REJECTED, 
+        INSPECTION_SCHEDULED, 
+        INSPECTION_COMPLETED, 
+        LICENSED
+    }
 }

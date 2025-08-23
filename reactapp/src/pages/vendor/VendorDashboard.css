@@ -1,0 +1,303 @@
+/* VendorDashboard.css */
+.vendor-dashboard {
+  min-height: calc(100vh - 140px);
+  background-color: #f8f9fa;
+  padding: 2rem 0;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  color: #333;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-header p {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  background-color: #007bff;
+  color: white;
+  padding: 1rem 1.5rem;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+/* Profile Info Styles */
+.profile-info {
+  margin-bottom: 1rem;
+}
+
+.profile-detail {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.profile-detail:last-child {
+  border-bottom: none;
+}
+
+.profile-detail strong {
+  color: #333;
+  margin-right: 0.5rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.status-badge.complete {
+  background-color: #28a745;
+}
+
+.status-badge.incomplete {
+  background-color: #dc3545;
+}
+
+/* Applications Summary */
+.applications-summary {
+  margin-bottom: 1.5rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.summary-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.summary-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.recent-applications h4 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.application-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.application-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.application-id {
+  font-weight: 500;
+  color: #333;
+}
+
+.application-date {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.action-button {
+  background: none;
+}
+
+.action-item:hover {
+  background-color: #e9ecef;
+  transform: translateX(5px);
+}
+
+.action-icon {
+  font-size: 1.5rem;
+  margin-right: 1rem;
+  width: 40px;
+  text-align: center;
+}
+
+.action-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.action-text strong {
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.action-text span {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+/* Tips List */
+.tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.tip-number {
+  background-color: #007bff;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.tip-text {
+  color: #333;
+  line-height: 1.5;
+}
+
+/* Card Actions */
+.card-actions {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.no-profile, .no-applications {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #6c757d;
+}
+
+.no-profile p, .no-applications p {
+  margin-bottom: 1rem;
+}
+
+/* Button variants */
+.btn-outline {
+  background-color: transparent;
+  color: #007bff;
+  border: 1px solid #007bff;
+}
+
+.btn-outline:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .vendor-dashboard {
+    padding: 1rem 0;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .application-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .action-item {
+    padding: 0.75rem;
+  }
+
+  .action-icon {
+    font-size: 1.25rem;
+  }
+}

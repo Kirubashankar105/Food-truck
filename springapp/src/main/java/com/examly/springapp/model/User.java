@@ -1,4 +1,3 @@
-// User.java
 package com.examly.springapp.model;
 
 import jakarta.persistence.Entity;
@@ -11,6 +10,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;

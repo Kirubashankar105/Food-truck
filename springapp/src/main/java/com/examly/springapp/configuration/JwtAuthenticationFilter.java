@@ -38,11 +38,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
-        // Skip JWT processing for auth endpoints and public endpoints
         String servletPath = request.getServletPath();
-        if (servletPath.contains("/api/auth") || 
-            servletPath.equals("/addVendor") || 
-            servletPath.equals("/getAllVendors")) {
+        
+        // Skip JWT processing for public endpoints
+        if (isPublicEndpoint(servletPath)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -69,12 +68,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    logger.warn("JWT token is invalid for user: {}", username);
                 }
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
         }
         
         filterChain.doFilter(request, response);
+    }
+    
+    private boolean isPublicEndpoint(String path) {
+        return path.contains("/api/auth/login") || 
+               path.contains("/api/auth/register") || 
+               path.contains("/api/auth/test") ||
+               path.equals("/addVendor") || 
+               path.equals("/getAllVendors") ||
+               path.startsWith("/css") ||
+               path.startsWith("/js") ||
+               path.startsWith("/images") ||
+               path.equals("/") ||
+               path.equals("/index.html");
     }
 }

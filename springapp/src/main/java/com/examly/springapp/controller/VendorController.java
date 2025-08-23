@@ -21,7 +21,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/vendor")
 @PreAuthorize("hasRole('VENDOR')")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class VendorController {
     
     @Autowired
@@ -35,7 +35,8 @@ public class VendorController {
                                                    Authentication authentication) {
         try {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
             
             FoodTruckVendor vendor = vendorService.createOrUpdateVendorProfile(
                 user,
@@ -47,7 +48,11 @@ public class VendorController {
                 profileRequest.getBusinessAddress()
             );
             
-            return ResponseEntity.ok(vendor);
+            Map<String, Object> response = new HashMap<>();
+            response.put("vendor", vendor);
+            response.put("message", "Profile updated successfully");
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
@@ -57,16 +62,23 @@ public class VendorController {
     
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        
-        Optional<FoodTruckVendor> vendor = vendorService.getVendorByUser(user);
-        if (vendor.isPresent()) {
-            return ResponseEntity.ok(vendor.get());
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Profile not found");
-            return ResponseEntity.notFound().build();
+        try {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            Optional<FoodTruckVendor> vendor = vendorService.getVendorByUser(user);
+            if (vendor.isPresent()) {
+                return ResponseEntity.ok(vendor.get());
+            } else {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "Profile not found. Please create your profile first.");
+                return ResponseEntity.ok(response);
+            }
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
     
@@ -74,15 +86,36 @@ public class VendorController {
     public ResponseEntity<?> createApplication(Authentication authentication) {
         try {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
             
             Optional<FoodTruckVendor> vendorOpt = vendorService.getVendorByUser(user);
-            if (vendorOpt.isPresent() && vendorOpt.get().isProfileComplete()) {
-                VendorApplication application = vendorService.createApplication(vendorOpt.get());
-                return ResponseEntity.ok(application);
+            if (vendorOpt.isPresent()) {
+                FoodTruckVendor vendor = vendorOpt.get();
+                if (vendor.isProfileComplete()) {
+                    // Check if there's already a pending/submitted application
+                    List<VendorApplication> existingApps = vendorService.getVendorApplications(vendor);
+                    boolean hasActiveApplication = existingApps.stream()
+                        .anyMatch(app -> app.getStatus() == VendorApplication.ApplicationStatus.DRAFT ||
+                                        app.getStatus() == VendorApplication.ApplicationStatus.SUBMITTED ||
+                                        app.getStatus() == VendorApplication.ApplicationStatus.UNDER_REVIEW);
+                    
+                    if (hasActiveApplication) {
+                        Map<String, String> error = new HashMap<>();
+                        error.put("error", "You already have an active application in progress");
+                        return ResponseEntity.badRequest().body(error);
+                    }
+                    
+                    VendorApplication application = vendorService.createApplication(vendor);
+                    return ResponseEntity.ok(application);
+                } else {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("error", "Please complete your profile first");
+                    return ResponseEntity.badRequest().body(error);
+                }
             } else {
                 Map<String, String> error = new HashMap<>();
-                error.put("error", "Please complete your profile first");
+                error.put("error", "Vendor profile not found. Please create your profile first.");
                 return ResponseEntity.badRequest().body(error);
             }
         } catch (Exception e) {
@@ -95,8 +128,26 @@ public class VendorController {
     @PutMapping("/application/{id}/submit")
     public ResponseEntity<?> submitApplication(@PathVariable Long id, Authentication authentication) {
         try {
-            VendorApplication application = vendorService.submitApplication(id);
-            return ResponseEntity.ok(application);
+            // Verify the application belongs to the authenticated user
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            Optional<FoodTruckVendor> vendorOpt = vendorService.getVendorByUser(user);
+            if (vendorOpt.isPresent()) {
+                VendorApplication application = vendorService.submitApplication(id);
+                // Additional verification that this application belongs to the user
+                if (!application.getVendor().getUser().getId().equals(user.getId())) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("error", "Unauthorized access to application");
+                    return ResponseEntity.badRequest().body(error);
+                }
+                return ResponseEntity.ok(application);
+            } else {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Vendor not found");
+                return ResponseEntity.badRequest().body(error);
+            }
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
@@ -106,35 +157,40 @@ public class VendorController {
     
     @GetMapping("/applications")
     public ResponseEntity<?> getApplications(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        
-        Optional<FoodTruckVendor> vendor = vendorService.getVendorByUser(user);
-        if (vendor.isPresent()) {
-            List<VendorApplication> applications = vendorService.getVendorApplications(vendor.get());
-            return ResponseEntity.ok(applications);
-        } else {
-            return ResponseEntity.notFound().build();
+        try {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            Optional<FoodTruckVendor> vendor = vendorService.getVendorByUser(user);
+            if (vendor.isPresent()) {
+                List<VendorApplication> applications = vendorService.getVendorApplications(vendor.get());
+                return ResponseEntity.ok(applications);
+            } else {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "No vendor profile found");
+                return ResponseEntity.ok(response);
+            }
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
     
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboardData(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        
-        Map<String, Object> dashboardData = new HashMap<>();
-        Optional<FoodTruckVendor> vendor = vendorService.getVendorByUser(user);
-        
-        if (vendor.isPresent()) {
-            dashboardData.put("profile", vendor.get());
-            List<VendorApplication> applications = vendorService.getVendorApplications(vendor.get());
-            dashboardData.put("applications", applications);
-            dashboardData.put("applicationCount", applications.size());
-        } else {
-            dashboardData.put("profileComplete", false);
+        try {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            Map<String, Object> dashboardData = vendorService.getDashboardData(user);
+            return ResponseEntity.ok(dashboardData);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
-        
-        return ResponseEntity.ok(dashboardData);
     }
 }

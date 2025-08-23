@@ -1,8 +1,156 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import authService from '../services/authService';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { setAuthToken, clearAuthToken } from '../services/apiService';
 
 const AuthContext = createContext();
 
+// Auth actions
+const AUTH_ACTIONS = {
+  LOGIN_SUCCESS: 'LOGIN_SUCCESS',
+  LOGOUT: 'LOGOUT',
+  SET_LOADING: 'SET_LOADING',
+  SET_ERROR: 'SET_ERROR',
+  CLEAR_ERROR: 'CLEAR_ERROR',
+};
+
+// Initial state
+const initialState = {
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
+};
+
+// Auth reducer
+const authReducer = (state, action) => {
+  switch (action.type) {
+    case AUTH_ACTIONS.LOGIN_SUCCESS:
+      return {
+        ...state,
+        user: action.payload.user,
+        token: action.payload.token,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
+    case AUTH_ACTIONS.LOGOUT:
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      };
+    case AUTH_ACTIONS.SET_LOADING:
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
+    case AUTH_ACTIONS.SET_ERROR:
+      return {
+        ...state,
+        error: action.payload,
+        isLoading: false,
+      };
+    case AUTH_ACTIONS.CLEAR_ERROR:
+      return {
+        ...state,
+        error: null,
+      };
+    default:
+      return state;
+  }
+};
+
+// AuthProvider component
+export const AuthProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+
+  // Initialize auth from localStorage on app start
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        setAuthToken(token);
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_SUCCESS,
+          payload: { user: parsedUser, token },
+        });
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        clearAuthToken();
+      }
+    }
+  }, []);
+
+  // Login function
+  const login = (user, token) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setAuthToken(token);
+    
+    dispatch({
+      type: AUTH_ACTIONS.LOGIN_SUCCESS,
+      payload: { user, token },
+    });
+  };
+
+  // Logout function
+  const logout = () => {
+    clearAuthToken();
+    dispatch({ type: AUTH_ACTIONS.LOGOUT });
+  };
+
+  // Set loading
+  const setLoading = (loading) => {
+    dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: loading });
+  };
+
+  // Set error
+  const setError = (error) => {
+    dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: error });
+  };
+
+  // Clear error
+  const clearError = () => {
+    dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
+  };
+
+  // Check if user has specific role
+  const hasRole = (role) => {
+    return state.user?.roles?.includes(role) || false;
+  };
+
+  // Check if user is admin
+  const isAdmin = () => hasRole('ROLE_ADMIN');
+
+  // Check if user is vendor
+  const isVendor = () => hasRole('ROLE_VENDOR');
+
+  const value = {
+    ...state,
+    login,
+    logout,
+    setLoading,
+    setError,
+    clearError,
+    hasRole,
+    isAdmin,
+    isVendor,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -11,106 +159,4 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        console.log('Initializing auth...');
-        const token = authService.getToken();
-        const storedUser = authService.getCurrentUser();
-        
-        console.log('Auth data:', { token: !!token, storedUser });
-        
-        if (token && storedUser) {
-          setUser(storedUser);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        setLoading(false);
-        console.log('Auth initialization complete');
-      }
-    };
-
-    initializeAuth();
-  }, []);
-
-  const login = async (credentials) => {
-    try {
-      const userData = await authService.login(credentials);
-      setUser(userData);
-      return userData;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const result = await authService.register(userData);
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-  };
-
-  // Add safety wrapper
-  const isAuthenticated = () => {
-    try {
-      if (typeof authService.isAuthenticated !== 'function') {
-        console.error('authService.isAuthenticated is not a function');
-        return false;
-      }
-      return authService.isAuthenticated();
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-      return false;
-    }
-  };
-
-  // Add safety wrapper
-  const hasRole = (role) => {
-    try {
-      if (typeof authService.hasRole !== 'function') {
-        console.error('authService.hasRole is not a function');
-        return false;
-      }
-      return authService.hasRole(role);
-    } catch (error) {
-      console.error('Error checking role:', error);
-      return false;
-    }
-  };
-
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    isAuthenticated,
-    hasRole,
-    loading
-  };
-
-  // Debug log
-  console.log('AuthContext providing:', {
-    user: !!user,
-    loading,
-    isAuthenticated: typeof isAuthenticated,
-    hasRole: typeof hasRole
-  });
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+export default AuthContext;

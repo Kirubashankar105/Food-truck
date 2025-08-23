@@ -2,6 +2,7 @@ package com.examly.springapp.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "food_truck_vendors")
@@ -12,6 +13,7 @@ public class FoodTruckVendor {
     
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore // Prevent circular reference in JSON serialization
     private User user;
     
     @Column(nullable = false)
@@ -34,6 +36,30 @@ public class FoodTruckVendor {
     public FoodTruckVendor(User user, String name) {
         this.user = user;
         this.name = name;
+    }
+    
+    // Add validation method
+    public boolean isProfileComplete() {
+        return name != null && !name.trim().isEmpty() &&
+               cuisineSpecialties != null && !cuisineSpecialties.trim().isEmpty() &&
+               operatingRegion != null && !operatingRegion.trim().isEmpty() &&
+               phoneNumber != null && !phoneNumber.trim().isEmpty() &&
+               businessAddress != null && !businessAddress.trim().isEmpty();
+    }
+    
+    // Auto-update timestamps
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+        this.profileComplete = isProfileComplete();
+    }
+    
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+        this.profileComplete = isProfileComplete();
     }
     
     // Getters and Setters
@@ -67,7 +93,6 @@ public class FoodTruckVendor {
     public LocalDateTime getLicenseExpiry() { return licenseExpiry; }
     public void setLicenseExpiry(LocalDateTime licenseExpiry) { this.licenseExpiry = licenseExpiry; }
     
-    public boolean isProfileComplete() { return profileComplete; }
     public void setProfileComplete(boolean profileComplete) { this.profileComplete = profileComplete; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
